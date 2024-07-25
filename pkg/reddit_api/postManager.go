@@ -23,8 +23,8 @@ const (
 )
 
 type RedditManager interface {
-	GetLatestPosts(int)
-	GetTopPosts(int, TimeFrame)
+	GetLatestPosts(int) ([]*ReadablePost, error)
+	GetTopPosts(int, TimeFrame) ([]*ReadablePost, error)
 }
 
 type SubredditManager struct {
