@@ -42,14 +42,12 @@ func NewTikTokTTS(voice Voice, fileDestination string) *TiktokTTS {
 	}
 }
 
+// sets the file destination path for saving the MP3 file.
 func (t *TiktokTTS) SetDestinationPath(destination string) {
 	t.fileDestination = destination
 }
 
-func (t *TiktokTTS) chooseVoice(voice Voice) {
-	t.voice = voice
-}
-
+// converts the provided text to MP3 and saves it to the specified file destination.
 func (t *TiktokTTS) TextToMp3(text string) {
 	mp3Data, err := t.createMP3Data(RequestPayload{
 		Text:   text,
@@ -60,18 +58,24 @@ func (t *TiktokTTS) TextToMp3(text string) {
 		log.Fatalf("Couldn't create a request to api: %s\nerror: %v", t.apiURL, err)
 	}
 
-	err = t.saveAsMp3(mp3Data, t.fileDestination)
-	if err != nil {
+	if err = t.saveAsMp3(mp3Data, t.fileDestination); err != nil {
 		log.Fatal("Couldn't save as mp3")
 	}
 }
 
+// sets the voice for the TTS service.
+func (t *TiktokTTS) chooseVoice(voice Voice) {
+	t.voice = voice
+}
+
+// creates the MP3 data by calling the TTS API and combining the results.
 func (t *TiktokTTS) createMP3Data(payload RequestPayload) (string, error) {
 	var chunks []string
 	if len(payload.Text) > 300 {
 		chunks = splitText(payload.Text, apiCharLimit)
+	} else {
+		chunks = append(chunks, payload.Text)
 	}
-	chunks = append(chunks, payload.Text)
 
 	bytesData, err := t.fetchAudio(chunks)
 	if err != nil {
@@ -84,6 +88,7 @@ func (t *TiktokTTS) createMP3Data(payload RequestPayload) (string, error) {
 	return combinedBytesData, nil
 }
 
+// creates an HTTP POST request to the TTS API with the provided payload.
 func (t *TiktokTTS) createRequest(payload RequestPayload) ([]byte, error) {
 	jsonData, err := json.Marshal(payload)
 	if err != nil {
@@ -110,9 +115,10 @@ func (t *TiktokTTS) createRequest(payload RequestPayload) ([]byte, error) {
 	return body, nil
 }
 
+// sends requests for each chunk of text to the TTS API concurrently and collects the responses.
+// It ensures that the returned data is in the correct order.
 func (t *TiktokTTS) fetchAudio(chunks []string) ([][]byte, error) {
 	var wg sync.WaitGroup
-	// respChan := make(chan []byte, len(chunks))
 	responses := make([][]byte, len(chunks))
 	errChan := make(chan error, len(chunks))
 
@@ -131,12 +137,10 @@ func (t *TiktokTTS) fetchAudio(chunks []string) ([][]byte, error) {
 				return
 			}
 			responses[i] = body
-			// respChan <- body
 		}(i, chunk)
 	}
 
 	wg.Wait()
-	// close(respChan)
 	close(errChan)
 
 	if len(errChan) > 0 {
@@ -145,6 +149,7 @@ func (t *TiktokTTS) fetchAudio(chunks []string) ([][]byte, error) {
 	return responses, nil
 }
 
+// saves the provided base64-encoded MP3 data to a file.
 func (t *TiktokTTS) saveAsMp3(data string, fileName string) error {
 	buf, err := base64.StdEncoding.DecodeString(data)
 	if err != nil {
@@ -159,6 +164,7 @@ func (t *TiktokTTS) saveAsMp3(data string, fileName string) error {
 	return nil
 }
 
+// splits the text into chunks of the specified maximum length.
 func splitText(text string, maxLen int) []string {
 	var chunks []string
 	for len(text) > maxLen {
@@ -173,6 +179,7 @@ func splitText(text string, maxLen int) []string {
 	return chunks
 }
 
+// combines the base64-encoded audio data from each chunk into a single string.
 func combineAudio(chunks [][]byte) (string, error) {
 	var returnString string
 	for _, chunk := range chunks {
