@@ -28,9 +28,11 @@ func main() {
 		log.Fatal(err)
 	}
 
-	session.AddHandler(commands.HelloWorld)
-	session.AddHandler(commands.VoiceChannelJoin)
-	session.AddHandler(commands.PlayAudio)
+	commandHandler := commands.NewCommandHandler("!", session)
+	commandHandler.AddCommand("!hello", &commands.HelloWorldHandler{})
+	commandHandler.AddCommand("!read", &commands.ReadHandler{})
+
+	session.AddHandler(commandHandler.HandleCommand)
 
 	err = session.Open()
 	if err != nil {
