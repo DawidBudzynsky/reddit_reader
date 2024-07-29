@@ -9,6 +9,7 @@ import (
 type ReadablePost struct {
 	Title string
 	Body  string
+	URL   string
 }
 
 type TimeFrame string
@@ -30,6 +31,17 @@ type RedditManager interface {
 type SubredditManager struct {
 	Client    *reddit.Client
 	Subreddit string
+}
+
+func NewSubredditManager(client *reddit.Client, subreddit string) *SubredditManager {
+	return &SubredditManager{
+		Client:    client,
+		Subreddit: subreddit,
+	}
+}
+
+func (m *SubredditManager) SetSubreddit(newSubreddit string) {
+	m.Subreddit = newSubreddit
 }
 
 func (m *SubredditManager) GetLatestPosts(number int) ([]*ReadablePost, error) {
@@ -63,6 +75,7 @@ func (m *SubredditManager) changePostToReadablePost(posts []*reddit.Post) []*Rea
 		readablePosts = append(readablePosts, &ReadablePost{
 			Title: post.Title,
 			Body:  post.Body,
+			URL:   post.URL,
 		})
 	}
 	return readablePosts
