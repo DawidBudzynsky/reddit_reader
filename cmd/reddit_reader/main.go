@@ -32,14 +32,14 @@ func main() {
 	}
 
 	redditManager := redditapi.NewSubredditManager(redditClient, "TwoSentenceHorror")
-	textToSpeach := texttospeach.NewTikTokTTS(texttospeach.VoiceEnglishUK2, "output.mp3")
+	textToSpeach := texttospeach.NewTikTokTTS(texttospeach.VoiceEnglishUK2, ".output/")
 
 	// Possible commands
 	commandHandler := commands.NewCommandHandler("!", session)
 	commandHandler.AddCommand("!hello", &commands.HelloWorldHandler{})
 	commandHandler.AddCommand("!read", &commands.ReadHandler{
 		RedditManager: redditManager,
-		TextToSoeach:  textToSpeach,
+		TextToSpeech:  textToSpeach,
 	})
 
 	// Discrod handlers

@@ -111,10 +111,10 @@ func PlayAudioFile(v *discordgo.VoiceConnection, filename string) {
 		if err != nil {
 			OnError("Couldn't stop speaking", err)
 		}
-		err = v.Disconnect()
-		if err != nil {
-			OnError("Couldn't disconnect", err)
-		}
+		// err = v.Disconnect()
+		// if err != nil {
+		// 	OnError("Couldn't disconnect", err)
+		// }
 	}()
 
 	send := make(chan []int16, 2)
