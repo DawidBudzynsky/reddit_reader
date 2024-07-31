@@ -83,38 +83,22 @@ func PlayAudioFile(v *discordgo.VoiceConnection, filename string) {
 	// Creating long enough buffer 16kB
 	ffmpegbuf := bufio.NewReaderSize(ffmpegout, 16384)
 
-	// Starts the ffmpeg command
 	err = run.Start()
 	if err != nil {
 		OnError("RunStart Error", err)
 		return
 	}
-
-	// prevent memory leak from residual ffmpeg streams
 	defer run.Process.Kill()
-
-	// when stop is sent, kill ffmpeg
-	// go func() {
-	// 	<-stop
-	// 	err = run.Process.Kill()
-	// }()
-
-	// Send "speaking" packet over the voice websocket
 	err = v.Speaking(true)
 	if err != nil {
 		OnError("Couldn't set speaking", err)
 	}
 
-	// Send not "speaking" packet over the websocket when we finish
 	defer func() {
 		err := v.Speaking(false)
 		if err != nil {
 			OnError("Couldn't stop speaking", err)
 		}
-		// err = v.Disconnect()
-		// if err != nil {
-		// 	OnError("Couldn't disconnect", err)
-		// }
 	}()
 
 	send := make(chan []int16, 2)
@@ -143,7 +127,7 @@ func PlayAudioFile(v *discordgo.VoiceConnection, filename string) {
 		// Send received PCM to the sendPCM channel
 		select {
 		case send <- audiobuf:
-		case <-done: // Check if the done channel is closed
+		case <-done:
 			return
 		}
 	}
