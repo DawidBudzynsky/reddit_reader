@@ -26,6 +26,7 @@ const (
 type RedditManager interface {
 	GetLatestPosts(int) ([]*ReadablePost, error)
 	GetTopPosts(int, TimeFrame) ([]*ReadablePost, error)
+	SetSubreddit(string)
 }
 
 type SubredditManager struct {
@@ -44,6 +45,8 @@ func (m *SubredditManager) SetSubreddit(newSubreddit string) {
 	m.Subreddit = newSubreddit
 }
 
+// GetLatestPosts retrieves the latest posts from the current subreddit.
+// It returns a slice of ReadablePost and any error encountered.
 func (m *SubredditManager) GetLatestPosts(number int) ([]*ReadablePost, error) {
 	results, _, err := m.Client.Subreddit.NewPosts(context.Background(), m.Subreddit, &reddit.ListOptions{
 		Limit: number,
@@ -55,6 +58,8 @@ func (m *SubredditManager) GetLatestPosts(number int) ([]*ReadablePost, error) {
 	return posts, nil
 }
 
+// GetTopPosts retrieves the top posts from the current subreddit based on the specified timeframe.
+// It returns a slice of ReadablePost and any error encountered.
 func (m *SubredditManager) GetTopPosts(number int, timeframe TimeFrame) ([]*ReadablePost, error) {
 	results, _, err := m.Client.Subreddit.TopPosts(context.Background(), m.Subreddit, &reddit.ListPostOptions{
 		ListOptions: reddit.ListOptions{
@@ -69,6 +74,8 @@ func (m *SubredditManager) GetTopPosts(number int, timeframe TimeFrame) ([]*Read
 	return posts, nil
 }
 
+// changePostToReadablePost converts a slice of Reddit posts to a slice of ReadablePost.
+// It simplifies the post structure to only include the title, body, and URL.
 func (m *SubredditManager) changePostToReadablePost(posts []*reddit.Post) []*ReadablePost {
 	readablePosts := []*ReadablePost{}
 	for _, post := range posts {

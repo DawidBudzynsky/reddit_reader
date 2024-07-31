@@ -25,19 +25,21 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
 	session, err := discordgo.New(os.Getenv("DISCORD_BOT_SECRET"))
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	redditManager := redditapi.NewSubredditManager(redditClient, "TwoSentenceHorror")
+	redditManager := redditapi.NewSubredditManager(redditClient, "golang")
 	textToSpeach := texttospeach.NewTikTokTTS(texttospeach.VoiceEnglishUK2, ".output/")
 
-	// Possible commands
+	// Avaliable commands
 	commandHandler := commands.NewCommandHandler("!", session)
 	commandHandler.AddCommand("!hello", &commands.HelloWorldHandler{})
 	commandHandler.AddCommand("!read", &commands.ReadHandler{
+		BaseCommand: commands.BaseCommand{
+			PossibleArguments: []string{"--subreddit", "--timeframe", "--number"},
+		},
 		RedditManager: redditManager,
 		TextToSpeech:  textToSpeach,
 	})
